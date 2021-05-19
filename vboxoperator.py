@@ -108,7 +108,7 @@ def print_snapshot_list(result):
         ('class:output2', '|'),
         ('class:output1', f' Snapshot Name { " " :<15} '),
         ('class:output2', '|'),
-        ('class:output1', ' VM UUID\n'),
+        ('class:output1', ' VM UUID\n')
     ]
     for l in result.split('\n'):
         snapshot_name = re.search(r'Name: (.*) \(', l)
@@ -152,8 +152,8 @@ def set_vm(vm):
 
 def start_vm(cmd_arr, vm):
     if vm:
-        if len(cmd) > 2:
-            if cmd[2] == 'headless':
+        if len(cmd_arr) > 2:
+            if cmd_arr[2] == 'headless':
                 result = command_runner(f'vboxmanage startvm {vm} --type headless')
                 print(result)
             else:
