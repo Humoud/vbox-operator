@@ -1,8 +1,10 @@
 import re
 import subprocess
+from menu import help_menu
+from prompt_toolkit import prompt
 from commands_dict import completer_dict
-from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit.styles import Style, style
+from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit import PromptSession, print_formatted_text
 
@@ -25,7 +27,8 @@ curr_vm = None
 vms = 0
 # running vms
 r_vms = 0
-
+# Create prompt object.
+session = PromptSession()
 ##########################################
 # HELPERS
 
@@ -79,7 +82,7 @@ def print_vm_list(result):
         ('class:output2', '|'),
         ('class:output1', f' VM Name { " " :<21} '),
         ('class:output2', '|'),
-        ('class:output1', ' VM UUID\n'),
+        ('class:output1', ' VM UUID\n')
     ]
     for l in result.split('\n'):
         vm_name = re.search(r'"(.*)"', l)
@@ -221,53 +224,58 @@ def pause_vm(cmd_arr, vm):
     else:
         print('Error, please select a VM via the "set vm" command.')
 
-
-def help_menu():
-    global curr_vm
+def copyfile_vm(cmd_arr, vm, cli):
+    global session
     global cli_style
-    if curr_vm:
-        msg = [
-            ( 'class:output1','\n  show state\n'),
-            ( 'class:output2','    Show the state of the currently selected VM.\n'),
-            ( 'class:output1','  show snapshots\n'),
-            ( 'class:output2','    Show the list of snapshots for the currently selected VM.\n'),
-            ( 'class:output1','  restore snapshot SNAPSHOT_NAME/SNAPSHOT_UUID\n'),
-            ( 'class:output2','    Revert the state of the currently select VM to the specified snapshot.\n'),
-            ( 'class:output1','  start vm\n'),
-            ( 'class:output2','    Start the currently selected VM.\n'),
-            ( 'class:output1','  reset vm\n'),
-            ( 'class:output2','    Restart the currently selected VM.\n'),
-            ( 'class:output1','  acpipowerbutton vm\n'),
-            ( 'class:output2','    Send ACPI shutdown signal (shutdown button) to the currently selected VM.\n'),
-            ( 'class:output1','  poweroff vm\n'),
-            ( 'class:output2','    Force shutdown (like pulling the power plug) the currently selected VM.\n'),
-            ( 'class:output1','  back\n'),
-            ( 'class:output2','    Go back to main menu.\n'),
-            ( 'class:output1','  exit\n'),
-            ( 'class:output2','    Exit program.\n')
-        ]
-        print_formatted_text(FormattedText(msg), style=cli_style)
+    if vm:
+        src_file = cmd_arr[1]
+        dst = cmd_arr[2]
+        t_cli = cli.copy()
+        t_cli.insert(1, ('class:output1', ' username '))
+        username = session.prompt(t_cli,style=cli_style)
+        t_cli = cli.copy()
+        t_cli.insert(1, ('class:output1', ' password '))
+        password = session.prompt(t_cli, is_password=True, style=cli_style)
+        result = command_runner(
+            f'vboxmanage guestcontrol {vm} copyto '
+            f'--username {username} --password {password} '
+            f'{src_file} --target-directory {dst}'
+        )
     else:
-        msg = [
-            ('class:output1','\n  list vms\n'),
-            ('class:output2','    List all VMs (shortcut: ls).\n'),
-            ('class:output1','  list vms running\n'),
-            ('class:output2','    List all running VMs (shortcut: ls vms running).\n'),
-            ('class:output1','  set vm VM_NAME/VM_UUID\n'),
-            ('class:output2','    Select a VM to operate on.\n'),
-            ('class:output1','  exit\n'),
-            ( 'class:output2','    Exit program.\n')
-        ]
-        print_formatted_text(FormattedText(msg), style=cli_style)
+        print('Error, please select a VM via the "set vm" command.')
+
+def copydir_vm(cmd_arr, vm, cli):
+    global cli_style
+    if vm:
+        src_dir = cmd_arr[1]
+        dst = cmd_arr[2]
+        t_cli = cli.copy()
+        t_cli.insert(1, ('class:output1', ' username '))
+        username = prompt(t_cli,style=cli_style)
+        t_cli = cli.copy()
+        t_cli.insert(1, ('class:output1', ' password '))
+        password = prompt(t_cli, is_password=True, style=cli_style)
+        result = command_runner(
+            f'vboxmanage guestcontrol {vm} copyto '
+            f'--username {username} --password {password} '
+            f'{src_dir} -R --target-directory {dst}'
+        )
+    else:
+        print('Error, please select a VM via the "set vm" command.')
 
 
-def handle_cmd(cmd):
+def handle_cmd(cmd, cli):
+    global cli_style
     global curr_vm
     try:
         if (cmd[0] == 'list' and cmd[1] == 'vms') or (cmd[0] == 'ls'):
             list_vms(cmd)
         elif cmd[0] == 'set' and cmd[1] == 'vm':
             set_vm(cmd[2])
+        elif cmd[0] == "copyfile":
+            copyfile_vm(cmd, curr_vm, cli)
+        elif cmd[0] == "copydir":
+            copydir_vm(cmd, curr_vm, cli)
         elif cmd[0] == 'start':
             start_vm(cmd, curr_vm)
         elif cmd[0] == 'show':
@@ -287,7 +295,7 @@ def handle_cmd(cmd):
         elif cmd[0] == 'reset':
             reset_vm(cmd, curr_vm)
         elif cmd[0] == 'help' or cmd[0] == 'h':
-            help_menu()
+            help_menu(curr_vm, cli_style)
         elif cmd[0] == 'back':
             curr_vm = None
         elif cmd[0] == 'exit':
@@ -310,10 +318,8 @@ def banner():
 
 
 if __name__ == "__main__":
-    banner()
-    # Create prompt object.
-    session = PromptSession()
     init_vms_data()
+    banner()
     while True:
         cli = [
             ('class:gt',    ' > ')
@@ -323,7 +329,7 @@ if __name__ == "__main__":
         
         cmd = session.prompt(cli, completer=pybox_completer, style=cli_style)
         cmd = cmd.split(' ')
-        handle_cmd(cmd)
+        handle_cmd(cmd, cli)
 
 
     

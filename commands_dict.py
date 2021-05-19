@@ -9,6 +9,8 @@ completer_dict = {
     'set': {'vm': None},
     'help': None,
     ################################
+    'copyfile': None,
+    'copydir': None,
     'show': {
         'state': None,
         'snapshots': None
