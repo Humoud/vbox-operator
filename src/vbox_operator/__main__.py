@@ -1,8 +1,8 @@
 import re
 import subprocess
-from menu import help_menu
+from vbox_operator.menu import help_menu
 from prompt_toolkit import prompt
-from commands_dict import completer_dict
+from vbox_operator.commands_dict import completer_dict
 from prompt_toolkit.styles import Style, style
 from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit.completion import NestedCompleter
@@ -310,14 +310,15 @@ def banner():
     global vms
     msg = [
         ('class:vm', 'VBox Operator '),
-        ('class:gt', 'v0.1\n'),
+        ('class:gt', 'v0.0.3\n'),
         ('class:output2', f'Available VMs: {vms}\n'),
         ('class:output1', f'Running VMs: {r_vms}')
     ]
     print_formatted_text(FormattedText(msg), style=cli_style)
 
 
-if __name__ == "__main__":
+def main():
+    global curr_vm
     init_vms_data()
     banner()
     while True:
@@ -332,4 +333,6 @@ if __name__ == "__main__":
         handle_cmd(cmd, cli)
 
 
+if __name__ == '__main__':
+    main()
     
