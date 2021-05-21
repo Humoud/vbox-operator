@@ -125,6 +125,19 @@ def pause_vm(vm):
     else:
         return None
 
+
+def mkdir_vm(username, password, vm, directory):
+    if vm:
+        result = command_runner(
+            f'vboxmanage guestcontrol {vm} mkdir '
+            f'--username {username} --password {password} '
+            f'--parents {directory}'
+        )
+        return result
+    else:
+        return None
+
+
 def copyfile_vm(username, password, vm, src_file, dst):
     if vm:
         result = command_runner(
@@ -137,6 +150,9 @@ def copyfile_vm(username, password, vm, src_file, dst):
 
 def copydir_vm(username, password, vm, src_dir, dst):
     if vm:
+        # create dir on guest vm
+        mkdir_vm(username, password, vm, dst)
+        # copy dir
         result = command_runner(
             f'vboxmanage guestcontrol {vm} copyto '
             f'--username {username} --password {password} '

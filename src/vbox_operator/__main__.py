@@ -1,6 +1,7 @@
 import re
 import subprocess
 from vbox_operator.menu import help_menu
+from vbox_operator.operations import mkdir_vm
 from prompt_toolkit import prompt
 from vbox_operator.commands_dict import completer_dict
 from prompt_toolkit.styles import Style, style
@@ -254,6 +255,7 @@ def copydir_vm(cmd_arr, vm, cli):
         t_cli = cli.copy()
         t_cli.insert(1, ('class:output1', ' password '))
         password = prompt(t_cli, is_password=True, style=cli_style)
+        mkdir_vm(username, password, vm, dst)
         result = command_runner(
             f'vboxmanage guestcontrol {vm} copyto '
             f'--username {username} --password {password} '
