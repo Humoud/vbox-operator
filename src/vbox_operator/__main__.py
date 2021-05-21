@@ -225,17 +225,16 @@ def pause_vm(cmd_arr, vm):
         print('Error, please select a VM via the "set vm" command.')
 
 def copyfile_vm(cmd_arr, vm, cli):
-    global session
     global cli_style
     if vm:
         src_file = cmd_arr[1]
         dst = cmd_arr[2]
         t_cli = cli.copy()
         t_cli.insert(1, ('class:output1', ' username '))
-        username = session.prompt(t_cli,style=cli_style)
+        username = prompt(t_cli,style=cli_style)
         t_cli = cli.copy()
         t_cli.insert(1, ('class:output1', ' password '))
-        password = session.prompt(t_cli, is_password=True, style=cli_style)
+        password = prompt(t_cli, is_password=True, style=cli_style)
         result = command_runner(
             f'vboxmanage guestcontrol {vm} copyto '
             f'--username {username} --password {password} '
