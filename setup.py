@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="vbox-operator",
-    version="0.0.3",
+    version="0.0.4",
     author="Humoud Al Saleh",
     author_email="humoud@corpse.io",
     description="An interactive command line interface for VirtualBox.",
